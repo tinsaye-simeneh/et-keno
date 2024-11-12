@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LoginAction } from "../stores/auth/loginAction";
+import { LoginAction } from "../stores/authSlice/authAction";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { FaSpinner } from "react-icons/fa";
@@ -36,51 +36,26 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      localStorage.removeItem("token");
-    }
+    localStorage.removeItem("token");
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const username = usernameRef.current.value;
     const password = passWordRef.current.value;
-    const body = { username, password };
 
     setDisabled(true);
     try {
       setLoading(true);
-      const response = await dispatch(LoginAction(body));
+      const response = await dispatch(LoginAction({ username, password }));
       if (response.payload) {
         if (response.payload.isActive === true) {
           localStorage.setItem("token", response.payload.token);
-
-          // Create a hidden form to trigger the browser's password manager
-          const hiddenForm = document.createElement("form");
-          hiddenForm.action = "/login";
-          hiddenForm.method = "POST";
-          hiddenForm.style.display = "none";
-
-          const hiddenUsername = document.createElement("input");
-          hiddenUsername.name = "username";
-          hiddenUsername.value = username;
-          hiddenForm.appendChild(hiddenUsername);
-
-          const hiddenPassword = document.createElement("input");
-          hiddenPassword.name = "password";
-          hiddenPassword.type = "password";
-          hiddenPassword.value = password;
-          hiddenForm.appendChild(hiddenPassword);
-
-          document.body.appendChild(hiddenForm);
-          hiddenForm.submit();
-
           window.location.href = "/";
         } else {
           setLoading(false);
           Notification({
-            message: "Your account doesn't have access, please contact admin",
+            message: "Your account don't have access, please contact admin",
             type: "error",
           });
           window.location.href = "/login";
@@ -92,11 +67,10 @@ const Login = () => {
           type: "error",
         });
       }
-    } catch (err) {
+    } catch (error) {
       setLoading(false);
-      console.log(err);
+      setDisabled(false);
     }
-    setDisabled(false);
   };
 
   return (
@@ -113,7 +87,7 @@ const Login = () => {
             fontSize: "2.3rem",
           }}
         >
-          Et-Virtual Games <span className="ml-1 text-orange-600">.</span>
+          Et-Virtual Keno <span className="ml-1 text-orange-600">.</span>
         </p>
         <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
@@ -123,7 +97,7 @@ const Login = () => {
             <form className="space-y-4 md:space-y-6" onSubmit={handleLogin}>
               <div>
                 <label
-                  htmlFor="username"
+                  htmlFor="email"
                   className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                 >
                   Retailer Username
